@@ -16,7 +16,7 @@ st.set_page_config(
 # ============================================================
 # CARGA Y LIMPIEZA DE DATOS
 # ============================================================
-@st.cache_data(ttl=10)  # Recarga cada 5 min
+@st.cache_data(ttl=1)  # Recarga cada 5 min
 def cargar_datos():
     file_id = "1ngQlOe1gcTrXg6IVAZEU7qleprvCuy2o"  # 👈 Tu ID real
     url = f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=xlsx"
