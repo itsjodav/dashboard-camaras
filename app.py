@@ -17,17 +17,42 @@ st.set_page_config(
 # CARGA Y LIMPIEZA DE DATOS
 # ============================================================
 @st.cache_data
+@st.cache_data(ttl=300)  # Recarga cada 5 min
 def cargar_datos():
-    # Los encabezados reales están en la fila 2 del Excel
-    df = pd.read_excel("Libro2.xlsx", header=1)
+    file_id = "1aBcD...XYZ"  # 👈 Pega aquí tu ID
+    url = f"https://docs.google.com/spreadsheets/d/1ngQlOe1gcTrXg6IVAZEU7qleprvCuy2o/edit?pli=1&gid=64405537#gid=64405537"
+
+    df = pd.read_excel(url, header=1)
     df.columns = df.columns.astype(str).str.strip()
 
-    # Eliminar filas vacías
     df = df.dropna(how="all")
-
-    # Quedarnos solo con filas que tengan PILOTO válido
     df = df[df["PILOTO"].notna()].copy()
     df["PILOTO"] = df["PILOTO"].astype(str).str.strip()
+
+    def limpiar_coord(x):
+        if pd.isna(x):
+            return np.nan
+        x = str(x).replace(",", ".").strip()
+        try:
+            return float(x)
+        except:
+            return np.nan
+
+    def corregir_lat(x):
+        if pd.isna(x):
+            return np.nan
+        return x / 1_000_000 if abs(x) > 90 else x
+
+    def corregir_lon(x):
+        if pd.isna(x):
+            return np.nan
+        return x / 1_000_000 if abs(x) > 180 else x
+
+    df["LATITUD"] = df["LATITUD"].apply(limpiar_coord).apply(corregir_lat)
+    df["LONGUITUD"] = df["LONGUITUD"].apply(limpiar_coord).apply(corregir_lon)
+    df["ESTADO"] = df["ESTADO"].astype(str).str.strip().str.upper()
+
+    return df
 
     # Limpiar coordenadas
     def limpiar_coord(x):
