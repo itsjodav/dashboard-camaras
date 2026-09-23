@@ -169,7 +169,7 @@ if codigo:
             # ---- Cámaras NO FUNCIONA ----
             st.markdown(f"### ❌ Cámaras NO FUNCIONAN ({cant_no_funciona})")
             if cant_no_funciona > 0:
-                cols_mostrar = ["CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR", "OBSERVACION"]
+                cols_mostrar = ["N. CAM", "CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR", "OBSERVACION"]
                 cols_mostrar = [c for c in cols_mostrar if c in no_funciona_df.columns]
                 st.dataframe(
                     no_funciona_df[cols_mostrar],
