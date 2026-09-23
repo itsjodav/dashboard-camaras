@@ -18,8 +18,8 @@ st.set_page_config(
 # ============================================================
 @st.cache_data(ttl=300)  # Recarga cada 5 min
 def cargar_datos():
-    file_id = "1ngQlOe1gcTrXg6IVAZEU7qleprvCuy2o"  # 👈 Pega aquí tu ID
-     url = f"https://docs.google.com/spreadsheets/d/1ngQlOe1gcTrXg6IVAZEU7qleprvCuy2o/edit?pli=1&gid=64405537#gid=64405537"
+    file_id = "1ngQlOe1gcTrXg6IVAZEU7qleprvCuy2o"  # 👈 Tu ID real
+    url = f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=xlsx"
 
     df = pd.read_excel(url, header=1)
     df.columns = df.columns.astype(str).str.strip()
@@ -52,7 +52,7 @@ def cargar_datos():
     df["ESTADO"] = df["ESTADO"].astype(str).str.strip().str.upper()
 
     return df
-
+   
     # Limpiar coordenadas
     def limpiar_coord(x):
         if pd.isna(x):
