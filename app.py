@@ -152,7 +152,7 @@ if codigo:
             # ---- Cámaras FUNCIONANDO ----
             st.markdown(f"### ✅ Cámaras FUNCIONANDO ({cant_funcionando})")
             if cant_funcionando > 0:
-                cols_mostrar = ["CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR"]
+                cols_mostrar = ["N. CAM", "CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR"]
                 cols_mostrar = [c for c in cols_mostrar if c in funcionando_df.columns]
                 st.dataframe(
                     funcionando_df[cols_mostrar],
