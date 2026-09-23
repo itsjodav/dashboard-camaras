@@ -152,7 +152,7 @@ if codigo:
             # ---- Cámaras FUNCIONANDO ----
             st.markdown(f"### ✅ Cámaras FUNCIONANDO ({cant_funcionando})")
             if cant_funcionando > 0:
-                cols_mostrar = ["N. CAM", "CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR"]
+                cols_mostrar = ["N. CAM", "COD_SITIMAS","CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR"]
                 cols_mostrar = [c for c in cols_mostrar if c in funcionando_df.columns]
                 st.dataframe(
                     funcionando_df[cols_mostrar],
@@ -169,7 +169,7 @@ if codigo:
             # ---- Cámaras NO FUNCIONA ----
             st.markdown(f"### ❌ Cámaras NO FUNCIONAN ({cant_no_funciona})")
             if cant_no_funciona > 0:
-                cols_mostrar = ["N. CAM", "CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR", "OBSERVACION"]
+                cols_mostrar = ["N. CAM", "COD_SITIMAS", "CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR", "OBSERVACION"]
                 cols_mostrar = [c for c in cols_mostrar if c in no_funciona_df.columns]
                 st.dataframe(
                     no_funciona_df[cols_mostrar],
