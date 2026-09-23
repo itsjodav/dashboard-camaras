@@ -116,36 +116,114 @@ if codigo:
                 st.warning(f"⚠️ No hay cámaras con estado '{filtro_estado}' para este piloto.")
 
         if not resultado.empty:
+            # ---- Datos generales ----
             total_cam = len(resultado)
             lat = resultado["LATITUD"].dropna().iloc[0] if not resultado["LATITUD"].dropna().empty else None
             lon = resultado["LONGUITUD"].dropna().iloc[0] if not resultado["LONGUITUD"].dropna().empty else None
-            estado = resultado["ESTADO"].iloc[0]
+
+            # ---- Separar por estado ----
+            funcionando_df = resultado[resultado["ESTADO"] == "FUNCIONANDO"]
+            no_funciona_df = resultado[resultado["ESTADO"] == "NO FUNCIONA"]
+            otros_df = resultado[~resultado["ESTADO"].isin(["FUNCIONANDO", "NO FUNCIONA"])]
+
+            cant_funcionando = len(funcionando_df)
+            cant_no_funciona = len(no_funciona_df)
+            cant_otros = len(otros_df)
 
             st.subheader(f"📌 Resultado para el piloto: {codigo}")
 
+            # ---- Métricas principales ----
             m1, m2, m3, m4 = st.columns(4)
-            m1.metric("🎥 Cámaras", total_cam)
-            m2.metric("📊 Estado", estado)
-            m3.metric("📍 Latitud", f"{lat:.6f}" if lat and not pd.isna(lat) else "N/D")
-            m4.metric("📍 Longitud", f"{lon:.6f}" if lon and not pd.isna(lon) else "N/D")
+            m1.metric("🎥 Total cámaras", total_cam)
+            m2.metric("✅ Funcionando", cant_funcionando)
+            m3.metric("❌ No funcionan", cant_no_funciona)
+            m4.metric(
+                "📈 Disponibilidad",
+                f"{round((cant_funcionando / total_cam) * 100, 1)}%" if total_cam > 0 else "0%"
+            )
 
-            # Tabla detalle
-            st.markdown("### 📋 Detalle de cámaras")
-            columnas = ["CAMARA", "TIPO", "ESTADO", "DIRECCION", "MARCA", "MODELO", "SECTOR"]
-            columnas = [c for c in columnas if c in resultado.columns]
-            st.dataframe(resultado[columnas], use_container_width=True)
+            # ---- Coordenadas ----
+            c1, c2 = st.columns(2)
+            c1.metric("📍 Latitud", f"{lat:.6f}" if lat and not pd.isna(lat) else "N/D")
+            c2.metric("📍 Longitud", f"{lon:.6f}" if lon and not pd.isna(lon) else "N/D")
 
-            # Mapa
+            st.divider()
+
+            # ---- Cámaras FUNCIONANDO ----
+            st.markdown(f"### ✅ Cámaras FUNCIONANDO ({cant_funcionando})")
+            if cant_funcionando > 0:
+                cols_mostrar = ["CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR"]
+                cols_mostrar = [c for c in cols_mostrar if c in funcionando_df.columns]
+                st.dataframe(
+                    funcionando_df[cols_mostrar],
+                    use_container_width=True,
+                    hide_index=True
+                )
+                # Lista rápida de números de cámara
+                lista_camaras = funcionando_df["CAMARA"].dropna().astype(str).tolist()
+                if lista_camaras:
+                    st.caption(f"📹 Números de cámara: {', '.join(lista_camaras)}")
+            else:
+                st.info("No hay cámaras funcionando en este piloto.")
+
+            # ---- Cámaras NO FUNCIONA ----
+            st.markdown(f"### ❌ Cámaras NO FUNCIONAN ({cant_no_funciona})")
+            if cant_no_funciona > 0:
+                cols_mostrar = ["CAMARA", "TIPO", "DIRECCION", "MARCA", "MODELO", "SECTOR", "OBSERVACION"]
+                cols_mostrar = [c for c in cols_mostrar if c in no_funciona_df.columns]
+                st.dataframe(
+                    no_funciona_df[cols_mostrar],
+                    use_container_width=True,
+                    hide_index=True
+                )
+                lista_camaras = no_funciona_df["CAMARA"].dropna().astype(str).tolist()
+                if lista_camaras:
+                    st.caption(f"📹 Números de cámara: {', '.join(lista_camaras)}")
+
+                # Mostrar observaciones si existen
+                if "OBSERVACION" in no_funciona_df.columns:
+                    obs = no_funciona_df["OBSERVACION"].dropna().astype(str)
+                    obs = obs[obs.str.strip() != ""]
+                    if not obs.empty:
+                        st.warning("📝 Observaciones:")
+                        for o in obs.unique():
+                            st.write(f"- {o}")
+            else:
+                st.success("Todas las cámaras de este piloto están funcionando. ✅")
+
+            # ---- Otros estados (si los hay) ----
+            if cant_otros > 0:
+                st.markdown(f"### ⚠️ Otras cámaras con estado distinto ({cant_otros})")
+                cols_mostrar = ["CAMARA", "TIPO", "ESTADO", "DIRECCION", "OBSERVACION"]
+                cols_mostrar = [c for c in cols_mostrar if c in otros_df.columns]
+                st.dataframe(
+                    otros_df[cols_mostrar],
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            st.divider()
+
+            # ---- Mapa ----
             if lat and lon and not pd.isna(lat) and not pd.isna(lon):
                 st.markdown("### 🗺️ Ubicación en el mapa")
 
                 mapa = folium.Map(location=[lat, lon], zoom_start=17)
 
+                # Color según disponibilidad
+                if cant_no_funciona == 0:
+                    color_marcador = "green"
+                elif cant_funcionando == 0:
+                    color_marcador = "red"
+                else:
+                    color_marcador = "orange"
+
                 popup_html = f"""
                 <div style="font-family: Arial; font-size: 13px;">
                     <b>PILOTO:</b> {codigo}<br>
-                    <b>Cámaras:</b> {total_cam}<br>
-                    <b>Estado:</b> {estado}
+                    <b>Total:</b> {total_cam}<br>
+                    <b>✅ Funcionando:</b> {cant_funcionando}<br>
+                    <b>❌ No funcionan:</b> {cant_no_funciona}
                 </div>
                 """
 
@@ -153,12 +231,11 @@ if codigo:
                     [lat, lon],
                     popup=folium.Popup(popup_html, max_width=300),
                     tooltip=f"Piloto {codigo}",
-                    icon=folium.Icon(color="red", icon="camera", prefix="fa")
+                    icon=folium.Icon(color=color_marcador, icon="camera", prefix="fa")
                 ).add_to(mapa)
 
                 st_folium(mapa, width=800, height=500)
 
-                # Enlace a Google Maps
                 google_url = f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
                 st.markdown(
                     f'<a href="{google_url}" target="_blank" '
