@@ -16,7 +16,6 @@ st.set_page_config(
 # ============================================================
 # CARGA Y LIMPIEZA DE DATOS
 # ============================================================
-@st.cache_data
 @st.cache_data(ttl=300)  # Recarga cada 5 min
 def cargar_datos():
     file_id = "1aBcD...XYZ"  # 👈 Pega aquí tu ID
